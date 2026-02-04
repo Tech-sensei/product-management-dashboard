@@ -8,6 +8,7 @@ import { useAppDispatch } from '@/redux/hooks';
 import { setCredentials } from '@/redux/slices/authSlice';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { validateEmail, validatePassword } from '@/lib/validation';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,14 +19,36 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+
+    if (emailError || passwordError) {
+      setErrors({
+        email: emailError || '',
+        password: passwordError || '',
+      });
+      return;
+    }
+
+    // Clear errors
+    setErrors({ email: '', password: '' });
     setIsLoading(true);
 
     // Mock login logic
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      // Set cookie for middleware
+      document.cookie = "auth_token=mock-jwt-token; path=/; max-age=86400; SameSite=Lax";
       
       dispatch(setCredentials({
         user: { name: 'John Doe', email: formData.email },
@@ -33,7 +56,7 @@ export default function LoginPage() {
       }));
 
       toast.success('Successfully logged in!', {
-        description: 'Welcome back to AdminDash.',
+        description: 'Welcome back to Tolamore Consult.',
       });
       
       router.push('/overview');
@@ -51,12 +74,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-border overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold text-primary mb-2">Tolamore Dash</h1>
+            <h1 className="text-3xl font-bold text-primary mb-2">Tolamore Consult</h1>
             <p className="text-muted-foreground">Welcome back! Please enter your details.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email address */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground ml-1" htmlFor="email">
                 Email Address
@@ -68,28 +90,29 @@ export default function LoginPage() {
                 <input
                   id="email"
                   type="email"
-                  required
                   placeholder="john@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-accent/30 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                  className={cn(
+                    "w-full pl-10 pr-4 py-3 bg-accent/30 border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm",
+                    errors.email 
+                      ? "border-destructive focus:border-destructive focus:ring-destructive/20" 
+                      : "border-border focus:border-primary"
+                  )}
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) setErrors({ ...errors, email: '' });
+                  }}
                 />
               </div>
+              {errors.email && (
+                <p className="text-xs text-destructive ml-1">{errors.email}</p>
+              )}
             </div>
 
-            {/* Password */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between ml-1">
-                <label className="text-sm font-medium text-foreground" htmlFor="password">
-                  Password
-                </label>
-                <Link 
-                  href="/forgot-password" 
-                  className="text-xs text-primary font-medium hover:underline transition-all"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <label className="text-sm font-medium text-foreground ml-1" htmlFor="password">
+                Password
+              </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted-foreground transition-colors group-focus-within:text-primary">
                   <Lock size={18} />
@@ -97,11 +120,18 @@ export default function LoginPage() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  required
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-12 py-3 bg-accent/30 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                  className={cn(
+                    "w-full pl-10 pr-12 py-3 bg-accent/30 border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm",
+                    errors.password
+                      ? "border-destructive focus:border-destructive focus:ring-destructive/20" 
+                      : "border-border focus:border-primary"
+                  )}
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    if (errors.password) setErrors({ ...errors, password: '' });
+                  }}
                 />
                 <button
                   type="button"
@@ -110,6 +140,17 @@ export default function LoginPage() {
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-destructive ml-1">{errors.password}</p>
+              )}
+              <div className="flex justify-end">
+                <Link 
+                  href="/forgot-password" 
+                  className="text-xs text-primary font-medium hover:underline transition-all"
+                >
+                  Forgot password?
+                </Link>
               </div>
             </div>
 
@@ -149,7 +190,7 @@ export default function LoginPage() {
               href="/register" 
               className="text-primary font-bold hover:underline transition-all"
             >
-              Sign up for free
+              Sign up
             </Link>
           </div>
         </div>
