@@ -46,6 +46,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const handleLogout = () => {
+    // Clear cookie
+    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    
     dispatch(logout());
     toast.success('Logged out successfully');
     router.push('/login');
@@ -73,7 +76,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex flex-col h-full">
           {/* Logo / Header */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-border shrink-0">
-            <span className="text-xl font-bold text-primary">Tolamore Dash</span>
+            <span className="text-xl font-bold text-primary">Tolamore Consult</span>
             <button 
               className="lg:hidden p-2 hover:bg-accent rounded-md text-primary"
               onClick={onClose}

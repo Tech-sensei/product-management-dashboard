@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Lock, Loader2} from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { validateEmail, validatePassword, validateName } from '@/lib/validation';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,17 +18,38 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   });
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form
+    const nameError = validateName(formData.name);
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    let confirmPasswordError = '';
+
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match', {
-        description: 'Please ensure both passwords are the same.',
+      confirmPasswordError = 'Passwords do not match';
+    }
+
+    if (nameError || emailError || passwordError || confirmPasswordError) {
+      setErrors({
+        name: nameError || '',
+        email: emailError || '',
+        password: passwordError || '',
+        confirmPassword: confirmPasswordError,
       });
       return;
     }
 
+    // Clear errors
+    setErrors({ name: '', email: '', password: '', confirmPassword: '' });
     setIsLoading(true);
 
     // Mock register logic
@@ -54,7 +76,7 @@ export default function RegisterPage() {
         <div className="p-8 md:p-10">
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold text-primary mb-2">Create Account</h1>
-            <p className="text-muted-foreground">Join Tolamore Dash and start managing your products.</p>
+            <p className="text-muted-foreground">Join Tolamore Consult and start managing your products.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -70,13 +92,23 @@ export default function RegisterPage() {
                   <input
                     id="name"
                     type="text"
-                    required
                     placeholder="John Doe"
-                    className="w-full pl-10 pr-4 py-3 bg-accent/30 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                    className={cn(
+                      "w-full pl-10 pr-4 py-3 bg-accent/30 border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm",
+                      errors.name
+                        ? "border-destructive focus:border-destructive focus:ring-destructive/20" 
+                        : "border-border focus:border-primary"
+                    )}
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      if (errors.name) setErrors({ ...errors, name: '' });
+                    }}
                   />
                 </div>
+                {errors.name && (
+                  <p className="text-xs text-destructive ml-1">{errors.name}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -90,13 +122,23 @@ export default function RegisterPage() {
                   <input
                     id="email"
                     type="email"
-                    required
                     placeholder="john@example.com"
-                    className="w-full pl-10 pr-4 py-3 bg-accent/30 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                    className={cn(
+                      "w-full pl-10 pr-4 py-3 bg-accent/30 border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm",
+                      errors.email
+                        ? "border-destructive focus:border-destructive focus:ring-destructive/20" 
+                        : "border-border focus:border-primary"
+                    )}
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value });
+                      if (errors.email) setErrors({ ...errors, email: '' });
+                    }}
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-xs text-destructive ml-1">{errors.email}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -111,13 +153,23 @@ export default function RegisterPage() {
                     <input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      required
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-3 bg-accent/30 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                      className={cn(
+                        "w-full pl-10 pr-4 py-3 bg-accent/30 border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm",
+                        errors.password
+                          ? "border-destructive focus:border-destructive focus:ring-destructive/20" 
+                          : "border-border focus:border-primary"
+                      )}
                       value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, password: e.target.value });
+                        if (errors.password) setErrors({ ...errors, password: '' });
+                      }}
                     />
                   </div>
+                  {errors.password && (
+                    <p className="text-xs text-destructive ml-1">{errors.password}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -126,18 +178,28 @@ export default function RegisterPage() {
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted-foreground transition-colors group-focus-within:text-primary">
-                      <div className="w-[18px] h-[18px] border-2 border-muted-foreground group-focus-within:border-primary rounded-full" />
+                     <Lock size={18} />
                     </div>
                     <input
                       id="confirmPassword"
                       type={showPassword ? "text" : "password"}
-                      required
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-3 bg-accent/30 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                      className={cn(
+                        "w-full pl-10 pr-4 py-3 bg-accent/30 border rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm",
+                        errors.confirmPassword
+                          ? "border-destructive focus:border-destructive focus:ring-destructive/20" 
+                          : "border-border focus:border-primary"
+                      )}
                       value={formData.confirmPassword}
-                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, confirmPassword: e.target.value });
+                        if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
+                      }}
                     />
                   </div>
+                  {errors.confirmPassword && (
+                    <p className="text-xs text-destructive ml-1">{errors.confirmPassword}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -167,7 +229,6 @@ export default function RegisterPage() {
               ) : (
                 <>
                   Create Account
-                  <CheckCircle2 size={18} />
                 </>
               )}
             </button>
