@@ -17,6 +17,7 @@ import ActionDropdown from "@/components/ui/ActionDropdown";
 import Pagination from "@/components/ui/Pagination";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { toast } from "sonner";
+import ProductModal from "@/components/products/ProductModal";
 
 
 const formatDate = (dateString: string) => {
@@ -39,6 +40,10 @@ export default function ProductsPage() {
     productsData, 
     isLoadingProducts, 
     productsError, 
+    createProduct,
+    isCreating,
+    updateProduct,
+    isUpdating,
     deleteProduct, 
     isDeleting,
     totalCount
@@ -46,6 +51,32 @@ export default function ProductsPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  
+  // Product Modal State
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const handleOpenEditModal = (product: Product) => {
+    setSelectedProduct(product);
+    setIsProductModalOpen(true);
+  };
+
+  const handleOpenAddModal = () => {
+    setSelectedProduct(null);
+    setIsProductModalOpen(true);
+  };
+
+  const handleProductSubmit = (data: any) => {
+    if (selectedProduct) {
+      updateProduct({ id: selectedProduct.id, ...data }, {
+        onSuccess: () => setIsProductModalOpen(false)
+      });
+    } else {
+      createProduct(data, {
+        onSuccess: () => setIsProductModalOpen(false)
+      });
+    }
+  };
 
   // Data for table (current page only)
   const products = productsData || [];
@@ -129,7 +160,7 @@ export default function ProductsPage() {
             {
               label: "Edit Product",
               icon: Edit,
-              onClick: () => toast.info(`Editing ${info.row.original.name}`),
+              onClick: () => handleOpenEditModal(info.row.original),
             },
             {
               label: "Delete Product",
@@ -187,7 +218,10 @@ export default function ProductsPage() {
             className="w-full pl-10 pr-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
           />
         </div>
-        <button className="bg-primary text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20">
+        <button 
+          onClick={handleOpenAddModal}
+          className="bg-primary text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20 cursor-pointer"
+        >
             Add Product
         </button>
       </div>
@@ -288,6 +322,14 @@ export default function ProductsPage() {
           }
         }}
         onCancel={() => setDeleteId(null)}
+      />
+
+      <ProductModal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        onSubmit={handleProductSubmit}
+        initialData={selectedProduct}
+        isLoading={isCreating || isUpdating}
       />
     </div>
   );

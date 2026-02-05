@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axios";
 import { toast } from "sonner";
 
-import { Product } from "@/types";
+import { Product, CreateProductDTO, UpdateProductDTO } from "@/types";
 
 export const useProductsAPI = (pageIndex?: number, pageSize?: number) => {
   const queryClient = useQueryClient();
@@ -21,6 +21,8 @@ export const useProductsAPI = (pageIndex?: number, pageSize?: number) => {
         params: {
           page: pageIndex !== undefined ? pageIndex + 1 : undefined,
           limit: pageSize,
+          sortBy: "createdAt",
+          order: "desc",
         },
       });
       return response.data;
@@ -38,6 +40,37 @@ export const useProductsAPI = (pageIndex?: number, pageSize?: number) => {
   });
 
   const totalCount = allProducts?.length || 0;
+
+  // 🆕 Create Product
+  const { mutate: createProduct, isPending: isCreating } = useMutation({
+    mutationFn: async (data: CreateProductDTO) => {
+      const response = await axiosInstance.post("/products", data);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Product created successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["products-total"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to create product");
+    },
+  });
+
+  // 📝 Update Product
+  const { mutate: updateProduct, isPending: isUpdating } = useMutation({
+    mutationFn: async ({ id, ...data }: UpdateProductDTO) => {
+      const response = await axiosInstance.put(`/products/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Product updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update product");
+    },
+  });
 
   // 🗑️ Delete Product
   const { mutate: deleteProduct, isPending: isDeleting } = useMutation({
@@ -61,6 +94,10 @@ export const useProductsAPI = (pageIndex?: number, pageSize?: number) => {
     isError,
     productsError,
     refetchProducts,
+    createProduct,
+    isCreating,
+    updateProduct,
+    isUpdating,
     deleteProduct,
     isDeleting,
     totalCount,
