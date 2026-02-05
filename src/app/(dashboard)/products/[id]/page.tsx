@@ -16,6 +16,7 @@ import {
   Trash
 } from "lucide-react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ProductModal from "@/components/products/ProductModal";
 import { cn } from "@/lib/utils";
 
 const formatDate = (dateString: string) => {
@@ -36,10 +37,13 @@ export default function ProductDetailsPage() {
     isLoadingProduct: isLoading, 
     isProductError: isError,
     deleteProduct,
-    isDeleting
+    isDeleting,
+    updateProduct,
+    isUpdating
   } = useProductsAPI(id as string);
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleDelete = () => {
     if (!id) return;
@@ -47,6 +51,15 @@ export default function ProductDetailsPage() {
       onSuccess: () => {
         setIsDeleteDialogOpen(false);
         router.push("/products");
+      },
+    });
+  };
+
+  const handleUpdate = (data: any) => {
+    if (!id) return;
+    updateProduct({ id: id as string, ...data }, {
+      onSuccess: () => {
+        setIsEditModalOpen(false);
       },
     });
   };
@@ -95,7 +108,10 @@ export default function ProductDetailsPage() {
         </button>
         
         <div className="flex gap-2">
-          <button className="px-4 py-2 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-medium text-sm cursor-pointer">
+          <button 
+            onClick={() => setIsEditModalOpen(true)}
+            className="px-4 py-2 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-medium text-sm cursor-pointer"
+          >
             Edit Product
           </button>
           <button 
@@ -237,6 +253,15 @@ export default function ProductDetailsPage() {
         variant="danger"
         onConfirm={handleDelete}
         onCancel={() => setIsDeleteDialogOpen(false)}
+      />
+
+      {/* Edit Product Modal */}
+      <ProductModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleUpdate}
+        initialData={product}
+        isLoading={isUpdating}
       />
     </div>
   );
