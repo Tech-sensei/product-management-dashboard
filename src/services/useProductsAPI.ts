@@ -4,10 +4,21 @@ import { toast } from "sonner";
 
 import { Product, CreateProductDTO, UpdateProductDTO } from "@/types";
 
-export const useProductsAPI = (productId?: string, pageIndex?: number, pageSize?: number) => {
+export interface ProductFilters {
+  category?: string;
+  status?: boolean;
+  search?: string;
+}
+
+export const useProductsAPI = (
+  productId?: string, 
+  pageIndex?: number, 
+  pageSize?: number,
+  filters?: ProductFilters
+) => {
   const queryClient = useQueryClient();
 
-  // 💰 Get Products (Paginated)
+  // 💰 Get Products (Paginated & Filtered)
   const {
     data: productsData,
     isPending: isLoadingProducts,
@@ -15,7 +26,7 @@ export const useProductsAPI = (productId?: string, pageIndex?: number, pageSize?
     error: productsError,
     refetch: refetchProducts,
   } = useQuery<Product[]>({
-    queryKey: ["products", pageIndex, pageSize],
+    queryKey: ["products", pageIndex, pageSize, filters],
     queryFn: async () => {
       const response = await axiosInstance.get("/products", {
         params: {
@@ -23,6 +34,10 @@ export const useProductsAPI = (productId?: string, pageIndex?: number, pageSize?
           limit: pageSize,
           sortBy: "createdAt",
           order: "desc",
+          // Filters
+          category: filters?.category || undefined,
+          status: filters?.status === undefined ? undefined : filters.status,
+          search: filters?.search || undefined,
         },
       });
       return response.data;
@@ -31,16 +46,23 @@ export const useProductsAPI = (productId?: string, pageIndex?: number, pageSize?
   });
 
   // 📊 Get Total Count (Required for pagination component)
-  const { data: allProducts } = useQuery<Product[]>({
-    queryKey: ["products-total"],
+  // Note: For total count we also need filters to get correct total
+  const { data: allFilteredProducts } = useQuery<Product[]>({
+    queryKey: ["products-total", filters],
     queryFn: async () => {
-      const response = await axiosInstance.get("/products");
+      const response = await axiosInstance.get("/products", {
+        params: {
+          category: filters?.category || undefined,
+          status: filters?.status === undefined ? undefined : filters.status,
+          search: filters?.search || undefined,
+        },
+      });
       return response.data;
     },
     enabled: pageIndex !== undefined && pageSize !== undefined,
   });
 
-  const totalCount = allProducts?.length || 0;
+  const totalCount = allFilteredProducts?.length || 0;
 
   // 💰 Get Product by ID
   const { 
