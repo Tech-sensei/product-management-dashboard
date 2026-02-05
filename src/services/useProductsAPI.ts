@@ -144,3 +144,22 @@ export const useProductsAPI = (
     totalCount,
   };
 };
+
+export const useDashboardStats = () => {
+  const { data: allProducts, isLoading, isError } = useQuery<Product[]>({
+    queryKey: ["products-all-stats"],
+    queryFn: async () => {
+      const response = await axiosInstance.get("/products");
+      return response.data;
+    },
+  });
+
+  const stats = {
+    total: allProducts?.length || 0,
+    inStock: allProducts?.filter(p => p.status).length || 0,
+    outOfStock: allProducts?.filter(p => !p.status).length || 0,
+    totalCategories: new Set(allProducts?.map(p => p.category)).size || 0,
+  };
+
+  return { stats, isLoading, isError };
+};

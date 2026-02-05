@@ -16,6 +16,7 @@ import {
   Trash
 } from "lucide-react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { cn } from "@/lib/utils";
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "N/A";
@@ -207,8 +208,16 @@ export default function ProductDetailsPage() {
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
-              <button className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium cursor-pointer shadow-sm">
-                Add to Cart
+              <button 
+                disabled={!product.status}
+                className={cn(
+                  "flex-1 px-6 py-3 rounded-lg transition-colors font-medium cursor-pointer shadow-sm",
+                  product.status 
+                    ? "bg-primary text-white hover:bg-primary/90" 
+                    : "bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                )}
+              >
+                {product.status ? "Add to Cart" : "Out of Stock"}
               </button>
               <button className="px-6 py-3 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-medium cursor-pointer">
                 <Package size={20} />

@@ -15,8 +15,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: 'testing@gmail.com',
+    password: 'password123',
   });
   const [errors, setErrors] = useState({
     email: '',
