@@ -102,6 +102,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Footer / Logout */}
           <div className="p-4 border-t border-border shrink-0">
             <button 
+              type="button"
               onClick={() => setIsLogoutDialogOpen(true)}
               className="flex items-center gap-2 p-2 w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors outline-none cursor-pointer"
             >

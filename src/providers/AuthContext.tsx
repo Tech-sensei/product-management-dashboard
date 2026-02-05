@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import { User, AuthContextType } from "@/types";
@@ -32,6 +32,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
+  const logout = useCallback(() => {
+    deleteCookie("auth_token");
+    localStorage.removeItem("user_data");
+    setUser(null);
+    setIsAuthenticated(false);
+    router.push("/login");
+  }, [router]);
+
   useEffect(() => {
     // Check for existing session
     const token = getCookie("auth_token");
@@ -41,28 +49,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setUser(JSON.parse(savedUser));
         setIsAuthenticated(true);
-      } catch (e) {
+      } catch {
         // Clear corrupt data
         logout();
       }
     }
-  }, []);
+  }, [logout]);
 
-  const login = (token: string, userData: User) => {
+  const login = useCallback((token: string, userData: User) => {
     setCookie("auth_token", token);
     localStorage.setItem("user_data", JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
     router.push("/overview");
-  };
-
-  const logout = () => {
-    deleteCookie("auth_token");
-    localStorage.removeItem("user_data");
-    setUser(null);
-    setIsAuthenticated(false);
-    router.push("/login");
-  };
+  }, [router]);
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>

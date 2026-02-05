@@ -23,6 +23,9 @@ const getCookie = (name: string) => {
   return null;
 };
 
+// Guard to prevent duplicate 401 handling
+let isHandling401 = false;
+
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
@@ -41,12 +44,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isHandling401) {
+      isHandling401 = true;
       toast.error("Session expired. Please login again.");
 
       if (typeof window !== "undefined") {
-        document.cookie =
-          "auth_token=; path=/; max-age=0";
+        document.cookie = "auth_token=; path=/; max-age=0";
         window.location.href = "/login";
       }
     }
