@@ -43,6 +43,7 @@ const ActionDropdown = ({
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn("p-2 hover:bg-neutral-100 rounded-md transition-colors cursor-pointer outline-none", triggerClassName)}
       >
@@ -58,6 +59,7 @@ const ActionDropdown = ({
         >
           {actions.map((action, index) => (
             <button
+              type="button"
               key={index}
               onClick={() => handleAction(action)}
               className={cn(

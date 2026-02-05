@@ -219,6 +219,7 @@ export default function ProductsPage() {
           />
         </div>
         <button 
+          type="button"
           onClick={handleOpenAddModal}
           className="bg-primary text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20 cursor-pointer"
         >

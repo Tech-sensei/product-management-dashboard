@@ -55,7 +55,6 @@ export default function LoginPage() {
       toast.success('Successfully logged in!', {
         description: 'Welcome back to Tolamore Consult.',
       });
-      router.push("/overview");
     } catch (error) {
       toast.error('Login failed', {
         description: 'Please check your credentials and try again.',

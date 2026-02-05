@@ -28,34 +28,43 @@ const Pagination = ({
   showTotalItems = true,
   className = "",
 }: PaginationProps) => {
-  const startItem = (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(currentPage * pageSize, totalItems);
+  // Handle totalItems === 0 case
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = totalItems === 0 ? 0 : Math.min(currentPage * pageSize, totalItems);
 
-  const getVisiblePages = () => {
-    if (totalPages <= 1) return [1]; 
+  const getVisiblePages = (): (number | string)[] => {
+    if (totalPages <= 1) return [1];
+    if (totalPages === 2) return [1, 2];
+    
     const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
+    const range: number[] = [];
+    const rangeWithDots: (number | string)[] = [];
 
     for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-        range.push(i);
+      range.push(i);
     }
 
     if (currentPage - delta > 2) {
-        rangeWithDots.push(1, "...");
+      rangeWithDots.push(1, "...");
     } else {
-        rangeWithDots.push(1);
+      rangeWithDots.push(1);
     }
 
     rangeWithDots.push(...range);
 
     if (currentPage + delta < totalPages - 1) {
-        rangeWithDots.push("...", totalPages);
-    } else {
-        rangeWithDots.push(totalPages);
+      rangeWithDots.push("...", totalPages);
+    } else if (totalPages > 1 && !rangeWithDots.includes(totalPages)) {
+      rangeWithDots.push(totalPages);
     }
 
-    return rangeWithDots;
+    // Deduplicate while preserving order
+    const seen = new Set<number | string>();
+    return rangeWithDots.filter(item => {
+      if (seen.has(item)) return false;
+      seen.add(item);
+      return true;
+    });
   };
 
   return (
@@ -96,6 +105,7 @@ const Pagination = ({
       <div className="flex items-center gap-1">
         {/* First page button */}
         <button
+          type="button"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
           className={cn(
@@ -108,6 +118,7 @@ const Pagination = ({
 
         {/* Previous page button */}
         <button
+          type="button"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           className={cn(
@@ -126,6 +137,7 @@ const Pagination = ({
                 <span className="px-3 py-2 text-neutral-400">...</span>
               ) : (
                 <button
+                  type="button"
                   onClick={() => onPageChange(page as number)}
                   className={cn(
                     "px-3 py-2 rounded-md border text-sm font-medium transition-colors cursor-pointer",
@@ -143,6 +155,7 @@ const Pagination = ({
 
         {/* Next page button */}
         <button
+          type="button"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           className={cn(
@@ -155,6 +168,7 @@ const Pagination = ({
 
         {/* Last page button */}
         <button
+          type="button"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
           className={cn(

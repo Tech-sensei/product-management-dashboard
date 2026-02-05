@@ -133,7 +133,7 @@ export default function ProductModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -156,8 +156,9 @@ export default function ProductModal({
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Product Name</label>
+            <label htmlFor="product-name" className="text-sm font-medium">Product Name</label>
             <input
+              id="product-name"
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
               onBlur={() => handleBlur('name')}
@@ -173,8 +174,9 @@ export default function ProductModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Price ($)</label>
+              <label htmlFor="product-price" className="text-sm font-medium">Price ($)</label>
               <input
+                id="product-price"
                 type="number"
                 step="0.01"
                 min="0.01"
@@ -191,8 +193,9 @@ export default function ProductModal({
               )}
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Category</label>
+              <label htmlFor="product-category" className="text-sm font-medium">Category</label>
               <input
+                id="product-category"
                 value={formData.category}
                 onChange={(e) => handleChange('category', e.target.value)}
                 onBlur={() => handleBlur('category')}
@@ -208,8 +211,9 @@ export default function ProductModal({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Description</label>
+            <label htmlFor="product-description" className="text-sm font-medium">Description</label>
             <textarea
+              id="product-description"
               rows={3}
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
