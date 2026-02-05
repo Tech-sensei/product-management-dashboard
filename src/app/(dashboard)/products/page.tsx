@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,7 +9,7 @@ import {
   flexRender,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { Search, Edit, Trash, Eye, Package } from "lucide-react";
+import { Search, Edit, Trash, Eye, Package, Filter, X, ChevronDown, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useProductsAPI } from "@/services/useProductsAPI";
 import { Product } from "@/types";
@@ -18,6 +18,7 @@ import ActionDropdown from "@/components/ui/ActionDropdown";
 import Pagination from "@/components/ui/Pagination";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import ProductModal from "@/components/products/ProductModal";
+import { cn } from "@/lib/utils";
 
 
 const formatDate = (dateString: string) => {
@@ -37,6 +38,13 @@ export default function ProductsPage() {
     pageSize: 10,
   });
 
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const [filters, setFilters] = useState({
+    status: undefined as boolean | undefined,
+    search: searchQuery,
+  });
+
   const { 
     productsData, 
     isLoadingProducts, 
@@ -48,14 +56,27 @@ export default function ProductsPage() {
     deleteProduct, 
     isDeleting,
     totalCount
-  } = useProductsAPI(undefined, pagination.pageIndex, pagination.pageSize);
+  } = useProductsAPI(undefined, pagination.pageIndex, pagination.pageSize, filters);
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
   // Product Modal State
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchQuery }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [filters.status, filters.search]);
+
 
   const handleOpenEditModal = (product: Product) => {
     setSelectedProduct(product);
@@ -176,24 +197,14 @@ export default function ProductsPage() {
   ], [router, handleOpenEditModal]);
 
 
-  const filteredData = useMemo(() => {
-    if (!searchQuery) return products;
-    const query = searchQuery.toLowerCase();
-    return products.filter(
-      (item: Product) =>
-        item.name?.toLowerCase().includes(query) ||
-        item.category?.toLowerCase().includes(query)
-    );
-  }, [products, searchQuery]);
-
   const table = useReactTable({
-    data: filteredData,
+    data: productsData || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
-    pageCount: Math.ceil(total / pagination.pageSize),
+    pageCount: Math.ceil(totalCount / pagination.pageSize),
     onPaginationChange: setPagination,
     state: {
       pagination,
@@ -208,23 +219,45 @@ export default function ProductsPage() {
         <p className="text-sm text-neutral-500 mt-1">Manage your product catalog</p>
       </div>
 
-      {/* Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="relative flex-1 w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search by name or category..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
-          />
+        <div className="flex flex-1 items-center gap-3 w-full md:max-w-2xl">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={18} />
+            <input
+              type="text"
+              placeholder="Search by name or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all shadow-sm"
+            />
+          </div>
+          
+          <div className="relative min-w-[160px]">
+            <select
+              value={filters.status === undefined ? "all" : filters.status.toString()}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFilters(prev => ({ 
+                  ...prev, 
+                  status: val === "all" ? undefined : val === "true" 
+                }));
+              }}
+              className="w-full appearance-none pl-4 pr-10 py-2.5 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all shadow-sm font-medium text-neutral-700"
+            >
+              <option value="all">All Status</option>
+              <option value="true">In Stock</option>
+              <option value="false">Out of Stock</option>
+            </select>
+            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+          </div>
         </div>
+
         <button 
           type="button"
           onClick={handleOpenAddModal}
-          className="bg-primary text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20 cursor-pointer"
+          className="bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all shadow-sm shadow-primary/20 flex items-center justify-center gap-2 whitespace-nowrap"
         >
+            <Plus size={18} />
             Add Product
         </button>
       </div>
@@ -297,12 +330,12 @@ export default function ProductsPage() {
           </table>
         </div>
 
-        {!isLoadingProducts && total > 0 && (
+        {!isLoadingProducts && totalCount > 0 && (
           <Pagination
             currentPage={pagination.pageIndex + 1}
-            totalPages={Math.ceil(total / pagination.pageSize)}
+            totalPages={Math.ceil(totalCount / pagination.pageSize)}
             pageSize={pagination.pageSize}
-            totalItems={total}
+            totalItems={totalCount}
             onPageChange={(page) => setPagination({ ...pagination, pageIndex: page - 1 })}
             onPageSizeChange={(pageSize) => setPagination({ pageIndex: 0, pageSize })}
             pageSizeOptions={[5, 10, 20, 50]}
@@ -313,7 +346,7 @@ export default function ProductsPage() {
       <ConfirmDialog
         open={!!deleteId}
         title="Delete Product"
-        description={`Are you sure you want to delete "${products.find(p => p.id === deleteId)?.name || "this product"}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${productsData?.find(p => p.id === deleteId)?.name || "this product"}"? This action cannot be undone.`}
         confirmText="Delete Product"
         variant="danger"
         loading={isDeleting}
