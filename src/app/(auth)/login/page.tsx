@@ -4,15 +4,14 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
-import { useAppDispatch } from '@/redux/hooks';
-import { setCredentials } from '@/redux/slices/authSlice';
+import { useAuth } from '@/providers/AuthContext';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { validateEmail, validatePassword } from '@/lib/validation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -47,19 +46,16 @@ export default function LoginPage() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
-      // Set cookie for middleware
-      document.cookie = "auth_token=mock-jwt-token; path=/; max-age=86400; SameSite=Lax";
-      
-      dispatch(setCredentials({
-        user: { name: 'John Doe', email: formData.email },
-        token: 'mock-jwt-token',
-      }));
+      login('mock-jwt-token', { 
+        id: '1',
+        name: 'John Doe', 
+        email: formData.email 
+      });
 
       toast.success('Successfully logged in!', {
         description: 'Welcome back to Tolamore Consult.',
       });
-      
-      router.push('/overview');
+      router.push("/overview");
     } catch (error) {
       toast.error('Login failed', {
         description: 'Please check your credentials and try again.',

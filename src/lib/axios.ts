@@ -1,36 +1,54 @@
-import axios from 'axios';
+import axios from "axios";
+import { toast } from "sonner";
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://6983886f9c3efeb892a607f5.mockapi.io/api/v1";
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+  baseURL: API_BASE_URL,
+  timeout: 20000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
+
+// Helper to read cookie
+const getCookie = (name: string) => {
+  if (typeof document === "undefined") return null;
+
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(";").shift();
+  return null;
+};
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // You can add logic here to get token from localStorage or other sources
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = getCookie("auth_token");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor
 axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // Handle global errors like 401 Unauthorized
     if (error.response?.status === 401) {
-      // Logic for logout or redirect
+      toast.error("Session expired. Please login again.");
+
+      if (typeof window !== "undefined") {
+        document.cookie =
+          "auth_token=; path=/; max-age=0";
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

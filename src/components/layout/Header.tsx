@@ -1,15 +1,15 @@
 'use client';
 
-import { Menu, Search } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { useAppSelector } from '@/redux/hooks';
+import { useAuth } from '@/providers/AuthContext';
 
 interface HeaderProps {
   onOpenSidebar: () => void;
 }
 
 export default function Header({ onOpenSidebar }: HeaderProps) {
-  const user = useAppSelector((state) => state.auth.user);  
+  const { user } = useAuth();  
   const pathname = usePathname();
   
   // Format pathname to title (e.g., /overview -> Overview)
@@ -30,18 +30,6 @@ export default function Header({ onOpenSidebar }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end">
-        {/* Search Bar Placeholder */}
-        <div className="relative hidden sm:block w-full max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            className="w-full pl-10 pr-4 py-2 bg-accent rounded-lg border-none focus:ring-2 focus:ring-primary/20 text-sm outline-none transition-all"
-          />
-        </div>
-
-
-
         <div className="flex items-center gap-3 pl-2 border-l border-border ml-2">
           <div className="text-right hidden sm:block">
             <p className="text-sm font-medium leading-none">John Doe</p>
