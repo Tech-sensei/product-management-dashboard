@@ -9,14 +9,14 @@ import {
   flexRender,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { Search, PackageX, Eye, Edit, Trash } from "lucide-react";
+import { Search, Edit, Trash, Eye, Package } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useProductsAPI } from "@/services/useProductsAPI";
 import { Product } from "@/types";
 import Image from "next/image";
 import ActionDropdown from "@/components/ui/ActionDropdown";
 import Pagination from "@/components/ui/Pagination";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { toast } from "sonner";
 import ProductModal from "@/components/products/ProductModal";
 
 
@@ -31,6 +31,7 @@ const formatDate = (dateString: string) => {
 };
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -47,7 +48,7 @@ export default function ProductsPage() {
     deleteProduct, 
     isDeleting,
     totalCount
-  } = useProductsAPI(pagination.pageIndex, pagination.pageSize);
+  } = useProductsAPI(undefined, pagination.pageIndex, pagination.pageSize);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -84,7 +85,7 @@ export default function ProductsPage() {
 
   const columnHelper = createColumnHelper<Product>();
 
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.accessor("image", {
       header: "Product",
       cell: (info) => (
@@ -153,9 +154,9 @@ export default function ProductsPage() {
         <ActionDropdown
           actions={[
             {
-              label: "View Product",
+              label: "View Details",
               icon: Eye,
-              onClick: () => toast.info(`Viewing ${info.row.original.name}`),
+              onClick: () => router.push(`/products/${info.row.original.id}`),
             },
             {
               label: "Edit Product",
@@ -172,7 +173,8 @@ export default function ProductsPage() {
         />
       ),
     }),
-  ];
+  ], [router, handleOpenEditModal]);
+
 
   const filteredData = useMemo(() => {
     if (!searchQuery) return products;
@@ -229,7 +231,7 @@ export default function ProductsPage() {
 
       {productsError && (
         <div className="bg-red-50 border border-red-100 rounded-lg p-4 flex items-start gap-3">
-            <PackageX className="text-red-500 mt-0.5" size={18} />
+            <Package className="text-red-500 mt-0.5" size={18} />
             <div>
                 <h3 className="text-sm font-medium text-red-800">Error Loading Products</h3>
                 <p className="text-xs text-red-600 mt-1">{(productsError as Error)?.message || "Failed to load products. Please try again."}</p>
@@ -271,7 +273,7 @@ export default function ProductsPage() {
                   <td colSpan={columns.length} className="px-6 py-12">
                     <div className="text-center">
                       <div className="mx-auto w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center mb-3">
-                        <PackageX size={20} className="text-neutral-400" />
+                        <Package size={20} className="text-neutral-400" />
                       </div>
                       <h3 className="text-sm font-medium text-neutral-900 mb-1">No Products Found</h3>
                       <p className="text-xs text-neutral-500">
@@ -311,8 +313,8 @@ export default function ProductsPage() {
       <ConfirmDialog
         open={!!deleteId}
         title="Delete Product"
-        description="Are you sure you want to delete this product? This action cannot be undone."
-        confirmText="Delete"
+        description={`Are you sure you want to delete "${products.find(p => p.id === deleteId)?.name || "this product"}"? This action cannot be undone.`}
+        confirmText="Delete Product"
         variant="danger"
         loading={isDeleting}
         onConfirm={() => {

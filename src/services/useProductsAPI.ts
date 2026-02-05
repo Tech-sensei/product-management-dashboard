@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { Product, CreateProductDTO, UpdateProductDTO } from "@/types";
 
-export const useProductsAPI = (pageIndex?: number, pageSize?: number) => {
+export const useProductsAPI = (productId?: string, pageIndex?: number, pageSize?: number) => {
   const queryClient = useQueryClient();
 
   // 💰 Get Products (Paginated)
@@ -27,19 +27,34 @@ export const useProductsAPI = (pageIndex?: number, pageSize?: number) => {
       });
       return response.data;
     },
+    enabled: pageIndex !== undefined && pageSize !== undefined,
   });
 
   // 📊 Get Total Count (Required for pagination component)
-  // Note: MockAPI doesn't return total in paginated requests, so I fetch all
   const { data: allProducts } = useQuery<Product[]>({
     queryKey: ["products-total"],
     queryFn: async () => {
       const response = await axiosInstance.get("/products");
       return response.data;
     },
+    enabled: pageIndex !== undefined && pageSize !== undefined,
   });
 
   const totalCount = allProducts?.length || 0;
+
+  // 💰 Get Product by ID
+  const { 
+    data: productData, 
+    isPending: isLoadingProduct,
+    isError: isProductError 
+  } = useQuery<Product>({
+    queryKey: ["product", productId],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/products/${productId}`);
+      return response.data;
+    },
+    enabled: !!productId,
+  });
 
   // 🆕 Create Product
   const { mutate: createProduct, isPending: isCreating } = useMutation({
@@ -66,6 +81,7 @@ export const useProductsAPI = (pageIndex?: number, pageSize?: number) => {
     onSuccess: () => {
       toast.success("Product updated successfully");
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Failed to update product");
@@ -94,6 +110,9 @@ export const useProductsAPI = (pageIndex?: number, pageSize?: number) => {
     isError,
     productsError,
     refetchProducts,
+    productData,
+    isLoadingProduct,
+    isProductError,
     createProduct,
     isCreating,
     updateProduct,
