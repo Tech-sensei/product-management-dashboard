@@ -11,20 +11,9 @@ import {
   LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAppDispatch } from '@/redux/hooks';
-import { logout } from '@/redux/slices/authSlice';
+import { useAuth } from '@/providers/AuthContext';
 import { toast } from 'sonner';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useState } from 'react';
 
 const navItems = [
@@ -41,17 +30,12 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const dispatch = useAppDispatch();
+  const { logout } = useAuth();
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const handleLogout = () => {
-    // Clear cookie
-    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
-    
-    dispatch(logout());
+    logout();
     toast.success('Logged out successfully');
-    router.push('/login');
     setIsLogoutDialogOpen(false);
   };
 
@@ -117,33 +101,26 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           {/* Footer / Logout */}
           <div className="p-4 border-t border-border shrink-0">
-            <Dialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
-              <DialogTrigger asChild>
-                <button className="flex items-center gap-2 p-2 w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors">
-                  <LogOut size={20} />
-                  <span className="text-sm font-medium">Log out</span>
-                </button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Log out confirmation</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to log out? You will need to sign in again to access your dashboard.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button variant="destructive" onClick={handleLogout}>
-                    Log out
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <button 
+              onClick={() => setIsLogoutDialogOpen(true)}
+              className="flex items-center gap-2 p-2 w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors outline-none cursor-pointer"
+            >
+              <LogOut size={20} />
+              <span className="text-sm font-medium">Log out</span>
+            </button>
           </div>
         </div>
       </aside>
+
+      <ConfirmDialog
+        open={isLogoutDialogOpen}
+        title="Log out confirmation"
+        description="Are you sure you want to log out? You will need to sign in again to access your dashboard."
+        confirmText="Log out"
+        variant="danger"
+        onConfirm={handleLogout}
+        onCancel={() => setIsLogoutDialogOpen(false)}
+      />
     </>
   );
 }
