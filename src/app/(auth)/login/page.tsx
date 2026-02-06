@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: 'testing@gmail.com',
-    password: 'password123',
+    password: 'Password123!',
   });
   const [errors, setErrors] = useState({
     email: '',
@@ -139,25 +139,25 @@ export default function LoginPage() {
               {errors.password && (
                 <p className="text-xs text-destructive ml-1">{errors.password}</p>
               )}
-              <div className="flex justify-end">
-                <Link 
-                  href="/forgot-password" 
-                  className="text-xs text-primary font-medium hover:underline transition-all"
-                >
-                  Forgot password?
-                </Link>
-              </div>
             </div>
 
-            <div className="flex items-center space-x-2 ml-1">
-              <input 
-                type="checkbox" 
-                id="remember" 
-                className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 transition-all cursor-pointer"
-              />
-              <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer select-none">
-                Remember me for 30 days
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 ml-1">
+                <input 
+                  type="checkbox" 
+                  id="remember" 
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                />
+                <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer select-none">
+                  Remember me for 30 days
+                </label>
+              </div>
+              <Link 
+                href="/forgot-password" 
+                className="text-xs text-primary font-medium hover:underline transition-all"
+              >
+                Forgot password?
+              </Link>
             </div>
 
             <button

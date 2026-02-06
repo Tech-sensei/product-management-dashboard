@@ -7,16 +7,15 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="light"
       className="toaster group"
+      position="top-right"
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,
@@ -24,14 +23,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <OctagonXIcon className="size-4" />,
         loading: <Loader2Icon className="size-4 animate-spin" />,
       }}
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
+      toastOptions={{
+        classNames: {
+          toast: "group toast text-secondary-000 border border-accent-20 shadow-lg rounded-xl",
+          description: "text-accent-80",
+          actionButton: "bg-primary-100 text-white hover:bg-primary-100/90",
+          cancelButton: "bg-accent-10 text-accent-80 hover:bg-accent-20",
+          success: "!bg-green-50 !border-green-200 !text-green-800 [&>svg]:text-green-600",
+          error: "!bg-red-50 !border-red-200 !text-red-800 [&>svg]:text-red-600",
+          warning: "!bg-amber-50 !border-amber-200 !text-amber-800 [&>svg]:text-amber-600",
+          info: "!bg-blue-50 !border-blue-200 !text-blue-800 [&>svg]:text-blue-600",
+        },
+      }}
       {...props}
     />
   )

@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import { ShoppingCart, Search, ChevronDown, Filter, Package } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { ShoppingCart, Search, ChevronDown, Package } from 'lucide-react';
 
 const OrdersPage = () => {
   const [searchQuery, setSearchQuery] = useState("");

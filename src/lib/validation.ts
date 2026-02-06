@@ -9,7 +9,7 @@ export const validatePassword = (password: string, minLength = 2): string | null
   if (!password) return 'Password is required';
     if (password.length < minLength) return `Password must be at least ${minLength} characters`;
     if (password.length > 20) return 'Password must be at most 20 characters';
-    // if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) return 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character';
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) return 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character';
   return null;
 };
 

@@ -65,14 +65,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 During development, several key architectural decisions were made to balance performance, maintainability, and user experience:
 
 -   **React Query for Server State**: Chose `@tanstack/react-query` to handle all API interactions. This provides built-in caching, deduplication, and easy state synchronization (e.g., invalidating the list after a delete/edit).
-
--   **Simplified Auth Logic**: Implemented a custom `AuthContext` combined with Next.js **Middleware** for route protection. This is to prevent users from accessing protected routes without authentication.
-
--   **Server-Side Logic**: Leveraged MockAPI's filtering and pagination parameters. By offloading these tasks to the API, we ensure the frontend remains performant even with large datasets.
-
--   **Centralized Type System**: All TypeScript interfaces are centralized in `src/types/index.ts`, ensuring a single source of truth and preventing duplication across the codebase.
-
--   **Modular Component Design**: Developed reusable UI elements like `ConfirmDialog`, `StatCard`, and `ProductModal` to maintain a consistent look and feel while keeping page files clean.
+-   **Axios for API Calls**: Used **Axios** over the native fetch API for its powerful features like interceptors (ideal for handling auth tokens) and its simpler, more consistent API for handling request/response transformations.
+-   **TanStack Table (React Table)**: Implemented for the product list to handle complex table requirements like pagination, sorting, and row selection with ease, ensuring a highly performant and flexible data grid.
+-   **Next.js Middleware**: Implemented to protect the dashboard routes and separate the authentication flow from the main application. This ensures that unauthenticated users are redirected to the login page before any protected content is rendered.
+-   **Shadcn UI Components**: Utilized **Shadcn UI** for core components to ensure a premium, accessible, and consistent design system. This allowed for rapid development of reusable components like dialogs, inputs, and buttons while maintaining full control over the styling.
+-   **Modular Component Design**: Developed reusable UI elements like `ConfirmDialog`, `StatCard`, and `ProductModal` to maintain a consistent look and feel while keeping page files clean and maintainable.
 
 ## 📂 Project Structure
 
